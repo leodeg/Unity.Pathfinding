@@ -13,13 +13,13 @@ namespace LD.PathFinding
 		{
 			if (m_Tile != null)
 			{
-				gameObject.name = "Node (" + node.m_XIndex + "_" + node.m_YIndex + ")";
-				gameObject.transform.position = node.m_Position;
+				gameObject.name = "Node (" + node.XIndex + "_" + node.YIndex + ")";
+				gameObject.transform.position = node.Position;
 				m_Tile.transform.localScale = new Vector3 (m_Tile.transform.localScale.x - m_BorderSize, 1f, m_Tile.transform.localScale.x - m_BorderSize);
 			}
 		}
 
-		private void ColorNode (Color color, GameObject gameObj)
+		private void SetColor (Color color, GameObject gameObj)
 		{
 			if (gameObj != null)
 			{
@@ -32,9 +32,9 @@ namespace LD.PathFinding
 			}
 		}
 
-		public void ColorNode (Color color)
+		public void SetColor (Color color)
 		{
-			ColorNode (color, m_Tile);
+			SetColor (color, m_Tile);
 		}
 	}
 }

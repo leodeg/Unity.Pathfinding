@@ -6,8 +6,7 @@ namespace LD.PathFinding
 {
 	internal class LD_Graph : MonoBehaviour
 	{
-		public LD_Node[,] m_Nodes;
-		public List<LD_Node> m_Walls = new List<LD_Node> ();
+		#region Variables
 
 		private int[,] m_MapData;
 		private int m_Width;
@@ -25,28 +24,42 @@ namespace LD.PathFinding
 			new Vector2(-1f,1f)
 		};
 
+		#endregion
+
+		#region Properties
+
+		public int Width { get { return m_Width; } }
+		public int Height { get { return m_Height; } }
+
+		public LD_Node[,] Nodes { get; set; }
+		public List<LD_Node> Walls { get; set; } = new List<LD_Node> ();
+
+		#endregion
+
+		#region Initialization
+
 		public void Init (int[,] mapData)
 		{
 			m_MapData = mapData;
 			m_Width = mapData.GetLength (0);
 			m_Height = mapData.GetLength (1);
 
-			m_Nodes = new LD_Node[m_Width, m_Height];
+			Nodes = new LD_Node[m_Width, m_Height];
 
 			// Create nodes and walls
 			for (int y = 0; y < m_Height; y++)
 			{
 				for (int x = 0; x < m_Width; x++)
 				{
-					NodeType type = (NodeType)mapData[x, y];
+					LD_NodeType type = (LD_NodeType)mapData[x, y];
 					LD_Node newNode = new LD_Node (x, y, type);
 
-					m_Nodes[x, y] = newNode;
-					newNode.m_Position = new Vector3 (x, 0, y);
+					Nodes[x, y] = newNode;
+					newNode.Position = new Vector3 (x, 0, y);
 
-					if (type == NodeType.Blocked)
+					if (type == LD_NodeType.Blocked)
 					{
-						m_Walls.Add (newNode);
+						Walls.Add (newNode);
 					}
 				}
 			}
@@ -56,13 +69,17 @@ namespace LD.PathFinding
 			{
 				for (int x = 0; x < m_Width; x++)
 				{
-					if (m_Nodes[x, y].m_NodeType != NodeType.Blocked)
+					if (Nodes[x, y].NodeType != LD_NodeType.Blocked)
 					{
-						m_Nodes[x, y].m_Neighbors = GetNeighbors (x, y);
+						Nodes[x, y].Neighbors = GetNeighbors (x, y);
 					}
 				}
 			}
 		}
+
+		#endregion
+
+		#region Graph Methods
 
 		public bool IsWithinBounds (int x, int y)
 		{
@@ -81,7 +98,7 @@ namespace LD.PathFinding
 
 				if (IsWithinBounds (newX, newY)
 					&& nodeArray[newX, newY] != null
-					&& nodeArray[newX, newY].m_NodeType != NodeType.Blocked)
+					&& nodeArray[newX, newY].NodeType != LD_NodeType.Blocked)
 				{
 					neighborNodes.Add (nodeArray[newX, newY]);
 				}
@@ -92,7 +109,9 @@ namespace LD.PathFinding
 
 		private List<LD_Node> GetNeighbors (int x, int y)
 		{
-			return GetNeighbors (x, y, m_Nodes, m_Directions);
+			return GetNeighbors (x, y, Nodes, m_Directions);
 		}
+
+		#endregion
 	}
 }
