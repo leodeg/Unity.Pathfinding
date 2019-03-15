@@ -18,44 +18,53 @@ namespace LD.PathFinding
 		[SerializeField] private int m_EndY;
 
 		[Header ("Search Properties")]
-		[SerializeField] private float m_TimeStep = 0.1f;
+		[SerializeField] private float m_SearchSpeed = 0.1f;
 
 		private void Start ()
 		{
-			if (m_MapData != null && m_Graph != null)
+			if (m_MapData == null && m_Graph == null)
 			{
-				int[,] mapInstance = m_MapData.CreateMap ();
-				m_Graph.Init (mapInstance);
-				LD_GraphView graphView = m_Graph.gameObject.GetComponent<LD_GraphView> ();
-
-				if (graphView != null)
-				{
-					graphView.Init (m_Graph);
-				}
-
-				if (m_Graph.IsWithinBounds (m_StartX, m_StartY)
-					|| m_Graph.IsWithinBounds (m_EndX, m_EndY))
-				{
-					if (m_Pathfinder != null)
-					{
-						LD_Node startNode = m_Graph.Nodes[m_StartX, m_StartY];
-						LD_Node endNode = m_Graph.Nodes[m_EndX, m_EndY];
-						m_Pathfinder.Init (m_Graph, graphView, startNode, endNode);
-						StartCoroutine (m_Pathfinder.SearchRoutine(m_TimeStep));
-					}
-					else
-					{
-						Debug.LogWarning ("LD_GameController::Start:: Pathfinder is not assign.");
-					}
-				}
-				else
-				{
-					Debug.LogWarning ("LD_GameController::Start:: The start or the end node out of map size range.");
-				}
+				Debug.LogError ("LD_GameController::Start:: Map data or Graph data is null.");
+				return;
 			}
 
+			if (m_Pathfinder == null)
+			{
+				Debug.LogError ("LD_GameController::Start:: Pathfinder is not assign.");
+				return;
+			}
+
+			if (m_StartX == m_EndX && m_StartY == m_EndY)
+			{
+				Debug.LogError ("LD_GameController::Start:: Start and end nodes is on the same position.");
+				return;
+			}
+
+			if (m_Graph.IsInTheMapRange (m_StartX, m_StartY)
+				|| m_Graph.IsInTheMapRange (m_EndX, m_EndY))
+			{
+				Debug.LogWarning ("LD_GameController::Start:: Start or end node is out of map range.");
+				return;
+			}
+
+			int[,] mapData = m_MapData.CreateMap ();
+			m_Graph.Initialize (mapData);
+
+			LD_GraphView graphView = m_Graph.gameObject.GetComponent<LD_GraphView> ();
+			if (graphView != null)
+			{
+				graphView.Initialize (m_Graph);
+
+				LD_Node startNode = m_Graph.GetNode (m_StartX, m_StartY);
+				LD_Node endNode = m_Graph.GetNode (m_EndX, m_EndY);
+
+				m_Pathfinder.Initialize (m_Graph, graphView, startNode, endNode);
+				StartCoroutine (m_Pathfinder.StartSearch (m_SearchSpeed));
+			}
+			else
+			{
+				Debug.LogWarning ("LD_GameController::Start:: Cannot find GraphView class.");
+			}
 		}
-
-
 	}
 }

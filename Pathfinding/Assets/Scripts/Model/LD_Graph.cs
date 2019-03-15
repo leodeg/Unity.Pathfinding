@@ -36,9 +36,8 @@ namespace LD.PathFinding
 
 		#endregion
 
-		#region Initialization
 
-		public void Init (int[,] mapData)
+		public void Initialize (int[,] mapData)
 		{
 			m_MapData = mapData;
 			m_Width = mapData.GetLength (0);
@@ -71,22 +70,34 @@ namespace LD.PathFinding
 				{
 					if (Nodes[x, y].NodeType != LD_NodeType.Blocked)
 					{
-						Nodes[x, y].Neighbors = GetNeighbors (x, y);
+						Nodes[x, y].SetNeighbors(GetNeighbors (x, y));
 					}
 				}
 			}
 		}
-
-		#endregion
-
-		#region Graph Methods
-
-		public bool IsWithinBounds (int x, int y)
+		public bool IsInTheMapRange (int x, int y)
 		{
 			return ( x >= 0 ) && ( x < m_Width )
 				&& ( y >= 0 ) && ( y < m_Height );
 		}
 
+		public LD_Node GetNode (int x, int y)
+		{
+			return Nodes[x, y];
+		}
+		public float GetDistance (LD_Node source, LD_Node target)
+		{
+			int distanceX = Mathf.Abs (source.XIndex - target.XIndex);
+			int distanceY = Mathf.Abs (source.YIndex - target.YIndex);
+
+			int min = Mathf.Min (distanceX, distanceY);
+			int max = Mathf.Max (distanceX, distanceY);
+
+			int diagonalSteps = min;
+			int straightSteps = max - min;
+
+			return ( 1.4f * diagonalSteps + straightSteps );
+		}
 		private List<LD_Node> GetNeighbors (int x, int y, LD_Node[,] nodeArray, Vector2[] directions)
 		{
 			List<LD_Node> neighborNodes = new List<LD_Node> ();
@@ -96,7 +107,7 @@ namespace LD.PathFinding
 				int newX = x + (int)direction.x;
 				int newY = y + (int)direction.y;
 
-				if (IsWithinBounds (newX, newY)
+				if (IsInTheMapRange (newX, newY)
 					&& nodeArray[newX, newY] != null
 					&& nodeArray[newX, newY].NodeType != LD_NodeType.Blocked)
 				{
@@ -106,12 +117,10 @@ namespace LD.PathFinding
 
 			return neighborNodes;
 		}
-
 		private List<LD_Node> GetNeighbors (int x, int y)
 		{
 			return GetNeighbors (x, y, Nodes, m_Directions);
 		}
 
-		#endregion
 	}
 }

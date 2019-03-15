@@ -263,7 +263,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 25
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -287,7 +287,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 534669902}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 14.1, z: -0}
+  m_LocalPosition: {x: 30.8, y: 15, z: 17.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -325,11 +325,11 @@ MonoBehaviour:
   m_MapData: {fileID: 1884094505}
   m_Graph: {fileID: 1717808908}
   m_Pathfinder: {fileID: 828750176}
-  m_StartX: 1
-  m_StartY: 1
+  m_StartX: 0
+  m_StartY: 0
   m_EndX: 13
-  m_EndY: 0
-  m_TimeStep: 0.03
+  m_EndY: 7
+  m_SearchSpeed: 0
 --- !u!4 &690477688
 Transform:
   m_ObjectHideFlags: 0
@@ -380,6 +380,11 @@ MonoBehaviour:
   m_PathColor: {r: 0, g: 1, b: 1, a: 1}
   m_ArrowColor: {r: 0.9716981, g: 0.9577949, b: 0.79294235, a: 1}
   m_HighlightColor: {r: 1, g: 0.047468763, b: 0, a: 1}
+  m_SearchMode: 1
+  m_ShowIterations: 1
+  m_ShowColors: 1
+  m_ShowArrows: 0
+  m_StopSearchWhenFindGoalNode: 1
 --- !u!4 &828750177
 Transform:
   m_ObjectHideFlags: 0
@@ -480,10 +485,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb58fee4934d936439a8e45b4a31b209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodeViewPrefab: {fileID: 3076624442449711995, guid: f533a99c1e8b46b46bdfb4a4ed25f79d,
+  m_NodeViewPrefab: {fileID: 3076624442449711995, guid: f533a99c1e8b46b46bdfb4a4ed25f79d,
     type: 3}
-  openColor: {r: 1, g: 1, b: 1, a: 1}
-  blockedColor: {r: 0, g: 0, b: 0, a: 1}
+  m_OpenColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BlockedColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1884094504
 GameObject:
   m_ObjectHideFlags: 0
@@ -518,7 +523,22 @@ MonoBehaviour:
   m_TextMapAsset: {fileID: 4900000, guid: eccecc4c9da4ad04689e8a7f8006ab96, type: 3}
   m_ResourcesPath: MapData
   m_FileName: Maze_01
-  m_TextureMapAsset: {fileID: 0}
+  m_TextureMapAsset: {fileID: 2800000, guid: b811dda00bc50314c993939bb563ee7c, type: 3}
+  m_OpenColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_BlockedColor:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_LightColor:
+    serializedVersion: 2
+    rgba: 4283351676
+  m_MediumColor:
+    serializedVersion: 2
+    rgba: 4281663484
+  m_HeavyColor:
+    serializedVersion: 2
+    rgba: 4279009791
 --- !u!4 &1884094506
 Transform:
   m_ObjectHideFlags: 0

@@ -20,8 +20,23 @@ namespace LD.PathFinding
 		[Header ("Image Map Asset")]
 		[SerializeField] private Texture2D m_TextureMapAsset;
 
+		[Header ("Colors")]
+		[SerializeField] private Color32 m_OpenColor = Color.white;
+		[SerializeField] private Color32 m_BlockedColor = Color.black;
+		[SerializeField] private Color32 m_LightColor = Color.blue;
+		[SerializeField] private Color32 m_MediumColor = Color.yellow;
+		[SerializeField] private Color32 m_HeavyColor = Color.red;
+
+		private static Dictionary<Color32, LD_NodeType> m_TerrainLookupTable;
+
+
+		private void Awake ()
+		{
+			SetupLookupTable ();
+		}
 		private void Start ()
 		{
+
 			string levelName = SceneManager.GetActiveScene ().name;
 			string path = m_ResourcesPath + "/" + levelName;
 
@@ -80,6 +95,26 @@ namespace LD.PathFinding
 
 			return map;
 		}
+		private void SetupLookupTable ()
+		{
+			m_TerrainLookupTable = new Dictionary<Color32, LD_NodeType> ();
+			m_TerrainLookupTable.Add (m_OpenColor, LD_NodeType.Open);
+			m_TerrainLookupTable.Add (m_BlockedColor, LD_NodeType.Blocked);
+			m_TerrainLookupTable.Add (m_LightColor, LD_NodeType.LightTerrain);
+			m_TerrainLookupTable.Add (m_MediumColor, LD_NodeType.MediumTerrain);
+			m_TerrainLookupTable.Add (m_HeavyColor, LD_NodeType.HeavyTerrain);
+		}
+		public void SetDimensions (List<string> textLines)
+		{
+			m_Height = textLines.Count;
+			foreach (string line in textLines)
+			{
+				if (line.Length > m_Width)
+				{
+					m_Width = line.Length;
+				}
+			}
+		}
 
 		public List<string> GetMapFromFile (TextAsset textMaze)
 		{
@@ -96,14 +131,18 @@ namespace LD.PathFinding
 
 			return lines;
 		}
-
 		public List<string> GetMapFromFile ()
 		{
 			return GetMapFromFile (m_TextMapAsset);
 		}
-
 		public List<string> GetMapFromTexture (Texture2D texture)
 		{
+			if (m_TextureMapAsset == null)
+			{
+				Debug.LogError ("LD_MapData::GetMapFormTexture::ArgumentNullException().");
+				throw new System.ArgumentNullException ();
+			}
+
 			List<string> lines = new List<string> ();
 
 			for (int y = 0; y < texture.height; y++)
@@ -111,17 +150,16 @@ namespace LD.PathFinding
 				string newLine = string.Empty;
 				for (int x = 0; x < texture.width; x++)
 				{
-					if (texture.GetPixel (x, y) == Color.black)
+					Color pixelColor = texture.GetPixel (x, y);
+					if (m_TerrainLookupTable.ContainsKey(pixelColor))
 					{
-						newLine += '1';
-					}
-					else if (texture.GetPixel (x, y) == Color.white)
-					{
-						newLine += '0';
+						LD_NodeType nodeType = m_TerrainLookupTable[pixelColor];
+						int nodeTypeEnum = (int)nodeType;
+						newLine += nodeTypeEnum;
 					}
 					else
 					{
-						newLine += ' ';
+						newLine += '0';
 					}
 				}
 				lines.Add (newLine);
@@ -129,16 +167,6 @@ namespace LD.PathFinding
 			return lines;
 		}
 
-		public void SetDimensions (List<string> textLines)
-		{
-			m_Height = textLines.Count;
-			foreach (string line in textLines)
-			{
-				if (line.Length > m_Width)
-				{
-					m_Width = line.Length;
-				}
-			}
-		}
+
 	}
 }

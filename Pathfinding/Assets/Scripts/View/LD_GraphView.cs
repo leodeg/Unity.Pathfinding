@@ -8,17 +8,12 @@ namespace LD.PathFinding
 	[RequireComponent (typeof (LD_Graph))]
 	internal class LD_GraphView : MonoBehaviour
 	{
-		[SerializeField] private GameObject nodeViewPrefab;
-		[SerializeField] private LD_NodeView[,] nodeViews;
-		[SerializeField] private Color openColor = Color.white;
-		[SerializeField] private Color blockedColor = Color.black;
+		[SerializeField] private GameObject m_NodeViewPrefab;
+		[SerializeField] private LD_NodeView[,] m_NodeViews;
+		[SerializeField] private Color m_OpenColor = Color.white;
+		[SerializeField] private Color m_BlockedColor = Color.black;
 
-		public GameObject NodeViewPrefab { get => nodeViewPrefab; set => nodeViewPrefab = value; }
-		public LD_NodeView[,] NodeViews { get => nodeViews; set => nodeViews = value; }
-		public Color OpenColor { get => openColor; set => openColor = value; }
-		public Color BlockedColor { get => blockedColor; set => blockedColor = value; }
-
-		public void Init (LD_Graph graph)
+		public void Initialize (LD_Graph graph)
 		{
 			if (graph == null)
 			{
@@ -26,37 +21,42 @@ namespace LD.PathFinding
 				return;
 			}
 
-			NodeViews = new LD_NodeView[graph.Width, graph.Height];
+			m_NodeViews = new LD_NodeView[graph.Width, graph.Height];
 
 			foreach (LD_Node node in graph.Nodes)
 			{
-				GameObject instance = Instantiate (NodeViewPrefab, Vector3.zero, Quaternion.identity);
+				GameObject instance = Instantiate (m_NodeViewPrefab, Vector3.zero, Quaternion.identity);
 				LD_NodeView nodeView = instance.GetComponent<LD_NodeView> ();
 
 				if (nodeView != null)
 				{
 					nodeView.Init (node);
-					NodeViews[node.XIndex, node.YIndex] = nodeView;
+					m_NodeViews[node.XIndex, node.YIndex] = nodeView;
 
 					if (node.NodeType == LD_NodeType.Blocked)
 					{
-						nodeView.SetColor (BlockedColor);
+						nodeView.SetColor (m_BlockedColor);
 					}
 					else
 					{
-						nodeView.SetColor (OpenColor);
+						nodeView.SetColor (m_OpenColor);
 					}
 				}
 			}
 		}
 
-		public void SetColorsOf (List<LD_Node> nodes, Color color)
+		public LD_NodeView GetNodeView (int x, int y)
+		{
+			return m_NodeViews[x, y];
+		}
+
+		public void SetColors (List<LD_Node> nodes, Color color)
 		{
 			foreach (LD_Node node in nodes)
 			{
 				if (node != null)
 				{
-					LD_NodeView nodeView = NodeViews[node.XIndex, node.YIndex];
+					LD_NodeView nodeView = m_NodeViews[node.XIndex, node.YIndex];
 
 					if (nodeView != null)
 					{
@@ -65,19 +65,17 @@ namespace LD.PathFinding
 				}
 			}
 		}
-
 		public void ShowArrows (LD_Node node, Color color)
 		{
 			if (node != null)
 			{
-				LD_NodeView nodeView = NodeViews[node.XIndex, node.YIndex];
+				LD_NodeView nodeView = m_NodeViews[node.XIndex, node.YIndex];
 				if (nodeView != null)
 				{
 					nodeView.ShowArrow (color);
 				}
 			}
 		}
-
 		public void ShowArrows (List<LD_Node> nodes, Color color)
 		{
 			foreach (LD_Node node in nodes)
