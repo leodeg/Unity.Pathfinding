@@ -329,6 +329,7 @@ MonoBehaviour:
   m_StartY: 1
   m_EndX: 13
   m_EndY: 0
+  m_TimeStep: 0.03
 --- !u!4 &690477688
 Transform:
   m_ObjectHideFlags: 0
@@ -377,6 +378,8 @@ MonoBehaviour:
   m_FrontierColor: {r: 1, g: 0, b: 1, a: 1}
   m_ExploredColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_PathColor: {r: 0, g: 1, b: 1, a: 1}
+  m_ArrowColor: {r: 0.9716981, g: 0.9577949, b: 0.79294235, a: 1}
+  m_HighlightColor: {r: 1, g: 0.047468763, b: 0, a: 1}
 --- !u!4 &828750177
 Transform:
   m_ObjectHideFlags: 0

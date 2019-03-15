@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace LD.PathFinding
 		[SerializeField] private Color blockedColor = Color.black;
 
 		public GameObject NodeViewPrefab { get => nodeViewPrefab; set => nodeViewPrefab = value; }
-		internal LD_NodeView[,] NodeViews { get => nodeViews; set => nodeViews = value; }
+		public LD_NodeView[,] NodeViews { get => nodeViews; set => nodeViews = value; }
 		public Color OpenColor { get => openColor; set => openColor = value; }
 		public Color BlockedColor { get => blockedColor; set => blockedColor = value; }
 
@@ -49,7 +50,7 @@ namespace LD.PathFinding
 			}
 		}
 
-		public void SetupColors (List<LD_Node> nodes, Color color)
+		public void SetColorsOf (List<LD_Node> nodes, Color color)
 		{
 			foreach (LD_Node node in nodes)
 			{
@@ -62,6 +63,26 @@ namespace LD.PathFinding
 						nodeView.SetColor (color);
 					}
 				}
+			}
+		}
+
+		public void ShowArrows (LD_Node node, Color color)
+		{
+			if (node != null)
+			{
+				LD_NodeView nodeView = NodeViews[node.XIndex, node.YIndex];
+				if (nodeView != null)
+				{
+					nodeView.ShowArrow (color);
+				}
+			}
+		}
+
+		public void ShowArrows (List<LD_Node> nodes, Color color)
+		{
+			foreach (LD_Node node in nodes)
+			{
+				ShowArrows (node, color);
 			}
 		}
 	}

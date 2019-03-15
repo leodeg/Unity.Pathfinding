@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace LD.PathFinding
@@ -16,6 +17,8 @@ namespace LD.PathFinding
 		[SerializeField] private int m_EndX;
 		[SerializeField] private int m_EndY;
 
+		[Header ("Search Properties")]
+		[SerializeField] private float m_TimeStep = 0.1f;
 
 		private void Start ()
 		{
@@ -38,6 +41,7 @@ namespace LD.PathFinding
 						LD_Node startNode = m_Graph.Nodes[m_StartX, m_StartY];
 						LD_Node endNode = m_Graph.Nodes[m_EndX, m_EndY];
 						m_Pathfinder.Init (m_Graph, graphView, startNode, endNode);
+						StartCoroutine (m_Pathfinder.SearchRoutine(m_TimeStep));
 					}
 					else
 					{
@@ -49,6 +53,9 @@ namespace LD.PathFinding
 					Debug.LogWarning ("LD_GameController::Start:: The start or the end node out of map size range.");
 				}
 			}
+
 		}
+
+
 	}
 }
