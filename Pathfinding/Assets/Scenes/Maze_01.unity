@@ -327,8 +327,8 @@ MonoBehaviour:
   m_Pathfinder: {fileID: 828750176}
   m_StartX: 0
   m_StartY: 0
-  m_EndX: 51
-  m_EndY: 0
+  m_EndX: 28
+  m_EndY: 15
   m_SearchSpeed: 0
 --- !u!4 &690477688
 Transform:
@@ -380,7 +380,7 @@ MonoBehaviour:
   m_PathColor: {r: 0, g: 1, b: 1, a: 1}
   m_ArrowColor: {r: 0.9716981, g: 0.9577949, b: 0.79294235, a: 1}
   m_HighlightColor: {r: 1, g: 0.047468763, b: 0, a: 1}
-  m_SearchMode: 2
+  m_SearchMode: 3
   m_ShowIterations: 1
   m_ShowColors: 1
   m_ShowArrows: 0

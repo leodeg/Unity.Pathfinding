@@ -12,7 +12,8 @@ namespace LD.PathFinding
 		{
 			BreadthFirstSearch = 0,
 			Dijkstra = 1,
-			GreedyBreadthFirstSearch = 2
+			GreedyBreadthFirstSearch = 2,
+			AStar = 3
 		}
 
 		#region Editor Variables
@@ -125,6 +126,10 @@ namespace LD.PathFinding
 					{
 						Search_GreedyBreadthFirst (currentNode);
 					}
+					else
+					{
+						Search_AStar (currentNode);
+					}
 
 					if (m_FrontierNodes.Contains (m_EndNode))
 					{
@@ -147,6 +152,27 @@ namespace LD.PathFinding
 					m_IsComplete = true;
 				}
 			}
+		}
+
+		private List<LD_Node> FindPath (LD_Node end)
+		{
+			List<LD_Node> path = new List<LD_Node> ();
+
+			if (end == null)
+			{
+				return path;
+			}
+
+			path.Add (end);
+			LD_Node currentNode = end.Previous;
+
+			while (currentNode != null)
+			{
+				path.Insert (0, currentNode);
+				currentNode = currentNode.Previous;
+			}
+
+			return path;
 		}
 
 		private void Search_BreadthFirst (LD_Node node)
@@ -225,6 +251,35 @@ namespace LD.PathFinding
 				}
 			}
 		}
+		private void Search_AStar (LD_Node node)
+		{
+			if (node != null)
+			{
+				for (int i = 0; i < node.GetNeighborsCount (); i++)
+				{
+					if (!m_ExploredNodes.Contains (node.GetNeighbor (i)))
+					{
+						float distanceToNeighbor = m_Graph.GetDistance (node, node.GetNeighbor (i));
+						float distanceTraveled = distanceToNeighbor + node.DistanceTraveled;
+						distanceTraveled += (int)node.GetNodeType ();
+
+						if (float.IsPositiveInfinity (node.GetNeighbor (i).DistanceTraveled)
+							|| distanceTraveled < node.GetNeighbor (i).DistanceTraveled)
+						{
+							node.GetNeighbor (i).Previous = node;
+							node.GetNeighbor (i).DistanceTraveled = distanceTraveled;
+						}
+
+						if (!m_FrontierNodes.Contains (node.GetNeighbor (i)) && m_Graph != null)
+						{
+							int distanceToEnd = (int)m_Graph.GetDistance (node.GetNeighbor (i), m_EndNode);
+							node.GetNeighbor (i).Priority = (int)node.GetNeighbor (i).DistanceTraveled + distanceToEnd;
+							m_FrontierNodes.Enqueue (node.GetNeighbor (i));
+						}
+					}
+				}
+			}
+		}
 
 		private void ShowColors ()
 		{
@@ -288,26 +343,6 @@ namespace LD.PathFinding
 					}
 				}
 			}
-		}
-		private List<LD_Node> FindPath (LD_Node end)
-		{
-			List<LD_Node> path = new List<LD_Node> ();
-
-			if (end == null)
-			{
-				return path;
-			}
-
-			path.Add (end);
-			LD_Node currentNode = end.Previous;
-
-			while (currentNode != null)
-			{
-				path.Insert (0, currentNode);
-				currentNode = currentNode.Previous;
-			}
-
-			return path;
 		}
 	}
 }
