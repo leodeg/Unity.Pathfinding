@@ -151,7 +151,7 @@ namespace LD.PathFinding
 				for (int x = 0; x < texture.width; x++)
 				{
 					Color pixelColor = texture.GetPixel (x, y);
-					if (m_TerrainLookupTable.ContainsKey(pixelColor))
+					if (m_TerrainLookupTable.ContainsKey (pixelColor))
 					{
 						LD_NodeType nodeType = m_TerrainLookupTable[pixelColor];
 						int nodeTypeEnum = (int)nodeType;
@@ -166,7 +166,14 @@ namespace LD.PathFinding
 			}
 			return lines;
 		}
-
-
+		public static Color GetColorFromNodeType (LD_NodeType nodeType)
+		{
+			if (m_TerrainLookupTable.ContainsValue(nodeType))
+			{
+				Color colorKey = m_TerrainLookupTable.FirstOrDefault (x => x.Value == nodeType).Key;
+				return colorKey;
+			}
+			return Color.white;
+		}
 	}
 }

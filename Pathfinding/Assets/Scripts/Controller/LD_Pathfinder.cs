@@ -10,10 +10,14 @@ namespace LD.PathFinding
 	{
 		public enum SearchMode
 		{
-			BreadFirstSearch = 0,
-			Dijkstra = 1
+			BreadthFirstSearch = 0,
+			Dijkstra = 1,
+			GreedyBreadthFirstSearch = 2
 		}
 
+		#region Editor Variables
+
+		[Header ("Map Colors")]
 		[SerializeField] private Color m_StartColor = Color.green;
 		[SerializeField] private Color m_EndColor = Color.red;
 		[SerializeField] private Color m_FrontierColor = Color.magenta;
@@ -21,12 +25,23 @@ namespace LD.PathFinding
 		[SerializeField] private Color m_PathColor = Color.cyan;
 		[SerializeField] private Color m_ArrowColor = Color.yellow;
 		[SerializeField] private Color m_HighlightColor = Color.red;
+
+		[Header ("Search Methods")]
 		[SerializeField] private SearchMode m_SearchMode;
 
-		public bool m_ShowIterations = true;
-		public bool m_ShowColors = true;
-		public bool m_ShowArrows = true;
-		public bool m_StopSearchWhenFindGoalNode = true;
+		[Header ("Diagnostic Properties")]
+		[SerializeField] private bool m_ShowIterations = true;
+		[SerializeField] private bool m_ShowColors = true;
+		[SerializeField] private bool m_ShowArrows = true;
+		[SerializeField] private bool m_StopSearchWhenFindGoalNode = true;
+
+		[Header ("Colors Opacity Properties")]
+		[SerializeField] private bool m_OpacityColors = true;
+		[SerializeField] [Range (0, 1)] private float m_OpacityColorsValue = 0.5f;
+
+		#endregion
+
+		#region Variables
 
 		private LD_Node m_StartNode;
 		private LD_Node m_EndNode;
@@ -40,6 +55,7 @@ namespace LD.PathFinding
 		private bool m_IsComplete;
 		private int m_IterationCount;
 
+		#endregion
 
 		public void Initialize (LD_Graph graph, LD_GraphView graphView, LD_Node start, LD_Node end)
 		{
@@ -49,7 +65,7 @@ namespace LD.PathFinding
 				throw new System.ArgumentNullException ();
 			}
 
-			if (start.NodeType == LD_NodeType.Blocked || end.NodeType == LD_NodeType.Blocked)
+			if (start.GetNodeType () == LD_NodeType.Blocked || end.GetNodeType () == LD_NodeType.Blocked)
 			{
 				Debug.LogError ("LD_Pathfinder::Init::The first node or the end node is on blocked cell. The node must be on unlocked cell.");
 				throw new System.InvalidOperationException ("The node must be on unlocked cell.");
@@ -60,7 +76,7 @@ namespace LD.PathFinding
 			m_StartNode = start;
 			m_EndNode = end;
 
-			ShowColors (m_GraphView, start, end);
+			ShowColors (m_GraphView, start, end, m_OpacityColors, m_OpacityColorsValue);
 
 			m_FrontierNodes = new LD_PriorityQueue<LD_Node> ();
 			m_FrontierNodes.Enqueue (m_StartNode);
@@ -97,13 +113,17 @@ namespace LD.PathFinding
 						m_ExploredNodes.Add (currentNode);
 					}
 
-					if (m_SearchMode == SearchMode.BreadFirstSearch)
+					if (m_SearchMode == SearchMode.BreadthFirstSearch)
 					{
-						PathBreadFirstSearch (currentNode);
+						Search_BreadthFirst (currentNode);
 					}
 					else if (m_SearchMode == SearchMode.Dijkstra)
 					{
-						PathDijkstraSearch (currentNode);
+						Search_Dijkstra (currentNode);
+					}
+					else if (m_SearchMode == SearchMode.GreedyBreadthFirstSearch)
+					{
+						Search_GreedyBreadthFirst (currentNode);
 					}
 
 					if (m_FrontierNodes.Contains (m_EndNode))
@@ -129,36 +149,39 @@ namespace LD.PathFinding
 			}
 		}
 
-		private void PathBreadFirstSearch (LD_Node node)
+		private void Search_BreadthFirst (LD_Node node)
 		{
 			if (node != null)
 			{
-				for (int i = 0; i < node.GetNeighborsCount(); i++)
+				for (int i = 0; i < node.GetNeighborsCount (); i++)
 				{
-					if (!m_ExploredNodes.Contains (node.GetNeighbor(i))
-						&& !m_FrontierNodes.Contains (node.GetNeighbor(i)))
+					if (!m_ExploredNodes.Contains (node.GetNeighbor (i))
+						&& !m_FrontierNodes.Contains (node.GetNeighbor (i)))
 					{
 						float distanceToNeighbor = m_Graph.GetDistance (node, node.GetNeighbor (i));
 						float distanceTraveled = distanceToNeighbor + node.DistanceTraveled;
+						distanceTraveled += (int)node.GetNodeType ();
+
 						node.GetNeighbor (i).DistanceTraveled = distanceTraveled;
 
-						node.GetNeighbor(i).Previous = node;
+						node.GetNeighbor (i).Previous = node;
 						node.GetNeighbor (i).Priority = m_ExploredNodes.Count;
-						m_FrontierNodes.Enqueue (node.GetNeighbor(i));
+						m_FrontierNodes.Enqueue (node.GetNeighbor (i));
 					}
 				}
 			}
 		}
-		private void PathDijkstraSearch (LD_Node node)
+		private void Search_Dijkstra (LD_Node node)
 		{
 			if (node != null)
 			{
-				for (int i = 0; i < node.GetNeighborsCount(); i++)
+				for (int i = 0; i < node.GetNeighborsCount (); i++)
 				{
-					if (!m_ExploredNodes.Contains (node.GetNeighbor(i)))
+					if (!m_ExploredNodes.Contains (node.GetNeighbor (i)))
 					{
 						float distanceToNeighbor = m_Graph.GetDistance (node, node.GetNeighbor (i));
 						float distanceTraveled = distanceToNeighbor + node.DistanceTraveled;
+						distanceTraveled += (int)node.GetNodeType ();
 
 						if (float.IsPositiveInfinity (node.GetNeighbor (i).DistanceTraveled)
 							|| distanceTraveled < node.GetNeighbor (i).DistanceTraveled)
@@ -170,8 +193,34 @@ namespace LD.PathFinding
 						if (!m_FrontierNodes.Contains (node.GetNeighbor (i)))
 						{
 							node.GetNeighbor (i).Priority = (int)node.GetNeighbor (i).DistanceTraveled;
-							m_FrontierNodes.Enqueue (node.GetNeighbor(i));
+							m_FrontierNodes.Enqueue (node.GetNeighbor (i));
 						}
+					}
+				}
+			}
+		}
+		private void Search_GreedyBreadthFirst (LD_Node node)
+		{
+			if (node != null)
+			{
+				for (int i = 0; i < node.GetNeighborsCount (); i++)
+				{
+					if (!m_ExploredNodes.Contains (node.GetNeighbor (i))
+						&& !m_FrontierNodes.Contains (node.GetNeighbor (i)))
+					{
+						float distanceToNeighbor = m_Graph.GetDistance (node, node.GetNeighbor (i));
+						float distanceTraveled = distanceToNeighbor + node.DistanceTraveled;
+						distanceTraveled += (int)node.GetNodeType ();
+
+						node.GetNeighbor (i).DistanceTraveled = distanceTraveled;
+						node.GetNeighbor (i).Previous = node;
+
+						if (m_Graph != null)
+						{
+							node.GetNeighbor (i).Priority = (int)m_Graph.GetMangattanDistance(node.GetNeighbor(i), m_EndNode);
+						}
+
+						m_FrontierNodes.Enqueue (node.GetNeighbor (i));
 					}
 				}
 			}
@@ -185,9 +234,9 @@ namespace LD.PathFinding
 				throw new System.ArgumentNullException ();
 			}
 
-			ShowColors (m_GraphView, m_StartNode, m_EndNode);
+			ShowColors (m_GraphView, m_StartNode, m_EndNode, m_OpacityColors, m_OpacityColorsValue);
 		}
-		private void ShowColors (LD_GraphView graphView, LD_Node start, LD_Node end)
+		private void ShowColors (LD_GraphView graphView, LD_Node start, LD_Node end, bool lerpColor = false, float lerpValue = 0.5f)
 		{
 			if (graphView == null || start == null || end == null)
 			{
@@ -196,26 +245,26 @@ namespace LD.PathFinding
 
 			if (m_FrontierNodes != null)
 			{
-				graphView.SetColors (m_FrontierNodes.ToList (), m_FrontierColor);
+				graphView.SetColors (m_FrontierNodes.ToList (), m_FrontierColor, lerpColor, lerpValue);
 			}
 
 			if (m_ExploredNodes != null)
 			{
-				graphView.SetColors (m_ExploredNodes.ToList (), m_ExploredColor);
+				graphView.SetColors (m_ExploredNodes.ToList (), m_ExploredColor, lerpColor, lerpValue);
 			}
 
 			if (m_PathNodes != null && m_PathNodes.Count > 0)
 			{
-				m_GraphView.SetColors (m_PathNodes, m_PathColor);
+				m_GraphView.SetColors (m_PathNodes, m_PathColor, lerpColor, lerpValue);
 			}
 
-			LD_NodeView startView = graphView.GetNodeView(start.XIndex, start.YIndex);
+			LD_NodeView startView = graphView.GetNodeView (start.XIndex, start.YIndex);
 			if (startView != null)
 			{
 				startView.SetColor (m_StartColor);
 			}
 
-			LD_NodeView endView = graphView.GetNodeView(end.XIndex, end.YIndex);
+			LD_NodeView endView = graphView.GetNodeView (end.XIndex, end.YIndex);
 			if (endView != null)
 			{
 				endView.SetColor (m_EndColor);

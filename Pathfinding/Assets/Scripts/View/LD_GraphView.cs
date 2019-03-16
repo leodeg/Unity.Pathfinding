@@ -10,8 +10,6 @@ namespace LD.PathFinding
 	{
 		[SerializeField] private GameObject m_NodeViewPrefab;
 		[SerializeField] private LD_NodeView[,] m_NodeViews;
-		[SerializeField] private Color m_OpenColor = Color.white;
-		[SerializeField] private Color m_BlockedColor = Color.black;
 
 		public void Initialize (LD_Graph graph)
 		{
@@ -33,14 +31,8 @@ namespace LD.PathFinding
 					nodeView.Init (node);
 					m_NodeViews[node.XIndex, node.YIndex] = nodeView;
 
-					if (node.NodeType == LD_NodeType.Blocked)
-					{
-						nodeView.SetColor (m_BlockedColor);
-					}
-					else
-					{
-						nodeView.SetColor (m_OpenColor);
-					}
+					Color originalColor = LD_MapData.GetColorFromNodeType (node.GetNodeType());
+					nodeView.SetColor (originalColor);
 				}
 			}
 		}
@@ -50,17 +42,24 @@ namespace LD.PathFinding
 			return m_NodeViews[x, y];
 		}
 
-		public void SetColors (List<LD_Node> nodes, Color color)
+		public void SetColors (List<LD_Node> nodes, Color color, bool lerpColor = false, float lerpValue = 0.5f)
 		{
 			foreach (LD_Node node in nodes)
 			{
 				if (node != null)
 				{
 					LD_NodeView nodeView = m_NodeViews[node.XIndex, node.YIndex];
+					Color targetColor = color;
+
+					if (lerpColor)
+					{
+						Color originalColor = LD_MapData.GetColorFromNodeType (node.GetNodeType());
+						targetColor = Color.Lerp (originalColor, targetColor, lerpValue);
+					}
 
 					if (nodeView != null)
 					{
-						nodeView.SetColor (color);
+						nodeView.SetColor (targetColor);
 					}
 				}
 			}

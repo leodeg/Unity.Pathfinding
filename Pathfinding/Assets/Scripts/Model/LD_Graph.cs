@@ -68,9 +68,9 @@ namespace LD.PathFinding
 			{
 				for (int x = 0; x < m_Width; x++)
 				{
-					if (Nodes[x, y].NodeType != LD_NodeType.Blocked)
+					if (Nodes[x, y].GetNodeType () != LD_NodeType.Blocked)
 					{
-						Nodes[x, y].SetNeighbors(GetNeighbors (x, y));
+						Nodes[x, y].SetNeighbors (GetNeighbors (x, y));
 					}
 				}
 			}
@@ -85,19 +85,6 @@ namespace LD.PathFinding
 		{
 			return Nodes[x, y];
 		}
-		public float GetDistance (LD_Node source, LD_Node target)
-		{
-			int distanceX = Mathf.Abs (source.XIndex - target.XIndex);
-			int distanceY = Mathf.Abs (source.YIndex - target.YIndex);
-
-			int min = Mathf.Min (distanceX, distanceY);
-			int max = Mathf.Max (distanceX, distanceY);
-
-			int diagonalSteps = min;
-			int straightSteps = max - min;
-
-			return ( 1.4f * diagonalSteps + straightSteps );
-		}
 		private List<LD_Node> GetNeighbors (int x, int y, LD_Node[,] nodeArray, Vector2[] directions)
 		{
 			List<LD_Node> neighborNodes = new List<LD_Node> ();
@@ -109,7 +96,7 @@ namespace LD.PathFinding
 
 				if (IsInTheMapRange (newX, newY)
 					&& nodeArray[newX, newY] != null
-					&& nodeArray[newX, newY].NodeType != LD_NodeType.Blocked)
+					&& nodeArray[newX, newY].GetNodeType () != LD_NodeType.Blocked)
 				{
 					neighborNodes.Add (nodeArray[newX, newY]);
 				}
@@ -122,5 +109,24 @@ namespace LD.PathFinding
 			return GetNeighbors (x, y, Nodes, m_Directions);
 		}
 
+		public float GetDistance (LD_Node from, LD_Node to)
+		{
+			int distanceX = Mathf.Abs (from.XIndex - to.XIndex);
+			int distanceY = Mathf.Abs (from.YIndex - to.YIndex);
+
+			int min = Mathf.Min (distanceX, distanceY);
+			int max = Mathf.Max (distanceX, distanceY);
+
+			int diagonalSteps = min;
+			int straightSteps = max - min;
+
+			return ( 1.4f * diagonalSteps + straightSteps );
+		}
+		public float GetMangattanDistance (LD_Node from, LD_Node to)
+		{
+			int distanceX = Mathf.Abs (from.XIndex - to.XIndex);
+			int distanceY = Mathf.Abs (from.YIndex - to.YIndex);
+			return ( distanceX + distanceY );
+		}
 	}
 }

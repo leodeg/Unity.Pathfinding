@@ -14,7 +14,6 @@ namespace LD.PathFinding
 
 		public int YIndex { get { return m_yIndex; } }
 		public int XIndex { get { return m_xIndex; } }
-		public LD_NodeType NodeType { get { return m_NodeType; } }
 
 		public int Priority { get; set; }
 		public Vector3 Position { get; set; }
@@ -28,6 +27,11 @@ namespace LD.PathFinding
 			m_xIndex = xIndex;
 			m_yIndex = yIndex;
 			m_NodeType = type;
+		}
+
+		public LD_NodeType GetNodeType ()
+		{
+			return m_NodeType;
 		}
 
 		public LD_Node GetNeighbor (int index)
