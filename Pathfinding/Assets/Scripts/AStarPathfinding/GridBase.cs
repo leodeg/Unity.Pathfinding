@@ -9,8 +9,12 @@ namespace GridMaster
         #region Variables
 
         [Header ("Grid Properties")]
-        public Vector3 gridSize;
-        public Vector3 offset;
+        public int gridSizeX;
+        public int gridSizeY;
+        public int gridSizeZ;
+        public int offsetX;
+        public int offsetY;
+        public int offsetZ;
 
         [Header ("Grid")]
         public Node[,,] grid;
@@ -37,17 +41,12 @@ namespace GridMaster
 
         #region Properties
 
-        private static GridBase singleton;
+        private static readonly GridBase singleton = new GridBase ();
 
         public static GridBase Singleton
         {
             get
             {
-                if (singleton == null)
-                {
-                    singleton = new GridBase ();
-                }
-
                 return singleton;
             }
         }
@@ -80,21 +79,32 @@ namespace GridMaster
             Node startNode = GetNode (startNodePosition);
             Node endNode = GetNode (endNodePosition);
 
-            startNode.worldObject.GetComponent<Renderer> ().material.color = startColor;
-            endNode.worldObject.GetComponent<Renderer> ().material.color = endColor;
+            Pathfinding.Pathfinder pathfinder = new Pathfinding.Pathfinder (startNode, endNode, ShowPath);
+            List<Node> path = pathfinder.FindPath (startNode, endNode);
 
-            for (int i = 0; i < agentsAmount; i++)
+            //for (int i = 0; i < agentsAmount; i++)
+            //{
+            //    Pathfinding.PathfindingMaster.Singleton.RequestPathfind (startNode, endNode, ShowPath);
+            //}
+
+            Debug.Log ("Path Count: [" + path.Count + "]");
+            if (path != null && path.Count > 0)
             {
-                Pathfinding.PathfindingMaster.Singleton.RequestPathfind (startNode, endNode, ShowPath);
+                ShowPath (path);
             }
+
+            startNode.prefabObject.GetComponent<Renderer> ().material.color = startColor;
+            endNode.prefabObject.GetComponent<Renderer> ().material.color = endColor;
         }
 
         public void ShowPath (IEnumerable<Node> path)
         {
+            Debug.Log ("START SHOWING PATH");
             foreach (Node node in path)
             {
-                node.worldObject.GetComponent<Renderer> ().material.color = pathColor;
+                node.prefabObject.GetComponent<Renderer> ().material.color = pathColor;
             }
+            Debug.Log ("STOP SHOWING PATH");
         }
 
         #endregion
@@ -109,18 +119,18 @@ namespace GridMaster
                 return;
             }
 
-
-            int sizeX = Mathf.FloorToInt (gridSize.x);
-            int sizeY = Mathf.FloorToInt (gridSize.y);
-            int sizeZ = Mathf.FloorToInt (gridSize.z);
-
-            grid = new Node[sizeX, sizeY, sizeZ];
-
-            for (int x = 0; x < sizeX; x++)
+            if (gridSizeY <= 0)
             {
-                for (int y = 0; y < sizeY; y++)
+                gridSizeY = 1;
+            }
+
+            grid = new Node[gridSizeX, gridSizeY, gridSizeZ];
+
+            for (int x = 0; x < gridSizeX; x++)
+            {
+                for (int y = 0; y < gridSizeY; y++)
                 {
-                    for (int z = 0; z < sizeZ; z++)
+                    for (int z = 0; z < gridSizeZ; z++)
                     {
                         CreateGridCell (x, y, z);
                     }
@@ -130,7 +140,7 @@ namespace GridMaster
 
         private void CreateGridCell (int posX, int posY, int posZ)
         {
-            Vector3 currentPosition = new Vector3 (posX * offset.x, posY * offset.y, posZ * offset.z);
+            Vector3 currentPosition = new Vector3 (posX * offsetX, posY * offsetY, posZ * offsetZ);
 
             GameObject prefabClone = Instantiate (gridFloorPrefab, currentPosition, Quaternion.identity);
             prefabClone.transform.name = "Cell_" + posX.ToString () + "_" + posY.ToString () + "_" + posZ.ToString ();
@@ -140,7 +150,7 @@ namespace GridMaster
             node.x = posX;
             node.y = posY;
             node.z = posZ;
-            node.worldObject = prefabClone;
+            node.prefabObject = prefabClone;
 
             RaycastHit[] hits = Physics.BoxCastAll (currentPosition, new Vector3 (1, 0, 1), Vector3.forward);
 
@@ -174,9 +184,9 @@ namespace GridMaster
 
         private bool PositionInGridRange (int x, int y, int z)
         {
-            return x >= 0 && x < gridSize.x &&
-                   y >= 0 && y < gridSize.y &&
-                   z >= 0 && z < gridSize.z;
+            return x >= 0 && x < gridSizeX &&
+                   y >= 0 && y < gridSizeY &&
+                   z >= 0 && z < gridSizeZ;
         }
 
         #endregion

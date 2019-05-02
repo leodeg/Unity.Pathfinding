@@ -16,7 +16,7 @@ namespace Pathfinding
 
         public volatile bool jobDone;
         private PathfindingMaster.JobComplete completeCallback;
-        List<Node> foundPath;
+        List<Node> completePath;
 
         #endregion
 
@@ -32,7 +32,7 @@ namespace Pathfinding
         {
             if (completeCallback != null)
             {
-                completeCallback (foundPath);
+                completeCallback (completePath);
             }
         }
 
@@ -40,13 +40,21 @@ namespace Pathfinding
 
         public void FindPath ()
         {
-            foundPath = FindPath (startPosition, endPosition);
-            jobDone = true;
+            completePath = FindPath (startPosition, endPosition);
+            if (completePath.Count > 0)
+            {
+                //NotifyComplete ();
+                jobDone = true;
+            }
+            else
+            {
+                Debug.Log ("Complete Path Count: [" + completePath.Count + "]");
+            }
         }
 
-
-        private List<Node> FindPath (Node start, Node end)
+        public List<Node> FindPath (Node start, Node end)
         {
+            Debug.Log ("FIND PATH");
             List<Node> path = new List<Node> ();
             List<Node> openSet = new List<Node> ();
             HashSet<Node> closedSet = new HashSet<Node> ();
@@ -61,7 +69,7 @@ namespace Pathfinding
                 {
                     if (openSet[i].TotalCost < currentNode.TotalCost ||
                         (openSet[i].TotalCost == currentNode.TotalCost &&
-                        openSet[i].heightCost < currentNode.heightCost))
+                        openSet[i].distanceCost < currentNode.distanceCost))
                     {
                         if (!currentNode.Equals (openSet[i]))
                         {
@@ -79,26 +87,37 @@ namespace Pathfinding
                     break;
                 }
 
-                foreach (Node neighbour in GetNeighbours (currentNode, true))
+                Debug.Log ("FIND NEIGHBOURS");
+                List<Node> currentNeighbours = GetNeighbours (currentNode, false);
+
+                if (currentNeighbours == null || currentNeighbours.Count == 0)
                 {
-                    if (!closedSet.Contains (neighbour))
+                    Debug.Log ("CURRENT NEIGHBOURS IS NULL");
+                    Debug.Log ("Current Neighbours Count: [" + currentNeighbours.Count + "]");
+                }
+                else
+                {
+                    foreach (Node neighbour in currentNeighbours)
                     {
-                        float costToNeighbour = currentNode.gridCost + GetDistance (currentNode, neighbour);
-
-                        if (costToNeighbour < neighbour.gridCost ||
-                            !openSet.Contains (neighbour))
+                        if (!closedSet.Contains (neighbour))
                         {
-                            neighbour.gridCost = costToNeighbour;
-                            neighbour.heightCost = GetDistance (neighbour, end);
-                            neighbour.parentNode = currentNode;
+                            float costToNeighbour = currentNode.neighbourCost + GetDistance (currentNode, neighbour);
 
-                            if (!openSet.Contains (neighbour))
+                            if (costToNeighbour < neighbour.neighbourCost || !openSet.Contains (neighbour))
                             {
-                                openSet.Add (neighbour);
+                                neighbour.neighbourCost = costToNeighbour;
+                                neighbour.distanceCost = GetDistance (neighbour, end);
+                                neighbour.parentNode = currentNode;
+
+                                if (!openSet.Contains (neighbour))
+                                {
+                                    openSet.Add (neighbour);
+                                }
                             }
                         }
                     }
                 }
+
             }
 
             return path;
@@ -106,6 +125,7 @@ namespace Pathfinding
 
         private List<Node> RetracePath (Node startNode, Node endNode)
         {
+            Debug.Log ("RETRACE PATH");
             List<Node> path = new List<Node> ();
             Node currentNode = endNode;
 
@@ -123,9 +143,10 @@ namespace Pathfinding
 
         #region Get Node Methods
 
-        private List<Node> GetNeighbours (Node node, bool getVertivalNeighbours = false)
+        private List<Node> GetNeighbours (Node node, bool getTopAndDownNeighbours = false)
         {
-            List<Node> list = new List<Node> ();
+            Debug.Log ("GET NEIGHBOURS");
+            List<Node> neighbours = new List<Node> ();
 
             for (int x = -1; x <= 1; x++)
             {
@@ -133,87 +154,86 @@ namespace Pathfinding
                 {
                     for (int z = -1; z <= 1; z++)
                     {
-                        int yIndex = y;
-                        if (!getVertivalNeighbours) yIndex = 0;
+                        int currentYIndex = y;
+                        if (!getTopAndDownNeighbours)
+                        {
+                            currentYIndex = 0;
+                        }
 
                         // If not current node
-                        if (x != 0 && y != 0 && z != 0)
+                        if (x != 0 && currentYIndex != 0 && z != 0)
                         {
-                            Node searchPosition = new Node ();
-                            searchPosition.x = node.x + x;
-                            searchPosition.y = node.y + y;
-                            searchPosition.z = node.z + z;
+                            Node currentSearchPosition = new Node ();
+                            currentSearchPosition.x = node.x + x;
+                            currentSearchPosition.y = node.y + currentYIndex;
+                            currentSearchPosition.z = node.z + z;
 
-                            Node newNode = GetNeighbourNode (searchPosition, true, node);
+                            Node neighbourNode = GetNeighbourNode (currentSearchPosition, false, node);
 
-                            if (newNode != null)
-                                list.Add (newNode);
+                            if (neighbourNode != null)
+                                neighbours.Add (neighbourNode);
+                            else Debug.Log ("NEIGHBOUR IS NULL");
                         }
                     }
                 }
             }
 
-            return list;
+            return neighbours;
         }
 
-        private Node GetNeighbourNode (Node offsetPos, bool searchTopDown, Node currentNodePos)
+        private Node GetNeighbourNode (Node currentPosition, bool searchTopDown, Node baseNode)
         {
-            Node returnValue = null;
-            Node node = GetNode (offsetPos.x, offsetPos.y, offsetPos.z);
+            Debug.Log ("GET NEIGHBOUR NODE");
+            Node nodeToReturn = null;
+            Node node = GetNode (currentPosition.x, currentPosition.y, currentPosition.z);
 
             // Search Top-Down
             if (node != null && node.isWalkable)
             {
-                returnValue = node;
+                nodeToReturn = node;
             }
             else if (searchTopDown)
             {
-                offsetPos.y -= 1; // Look at bottom block
-                Node bottomBlock = GetNode (offsetPos.x, offsetPos.y, offsetPos.z);
-
-                if (bottomBlock != null && bottomBlock.isWalkable)
-                {
-                    returnValue = bottomBlock;
-                }
+                currentPosition.y -= 1; // Look at bottom block
+                Node bottomNode = GetNode (currentPosition.x, currentPosition.y, currentPosition.z);
+                if (bottomNode != null && bottomNode.isWalkable)
+                    nodeToReturn = bottomNode;
                 else
                 {
-                    offsetPos.y += 2; // Look at top block
-                    Node topBlock = GetNode (offsetPos.x, offsetPos.y, offsetPos.z);
-                    if (topBlock != null && topBlock.isWalkable)
-                    {
-                        returnValue = topBlock;
-                    }
+                    currentPosition.y += 2; // Look at top block
+                    Node topNode = GetNode (currentPosition.x, currentPosition.y, currentPosition.z);
+                    if (topNode != null && topNode.isWalkable)
+                        nodeToReturn = topNode;
                 }
             }
 
             // Search diagonal
-            int originalX = offsetPos.x - currentNodePos.x;
-            int originalZ = offsetPos.z - currentNodePos.z;
+            int originalX = currentPosition.x - baseNode.x;
+            int originalZ = currentPosition.z - baseNode.z;
 
-            if (Mathf.Abs (originalX) == 1 &&
-                Mathf.Abs (originalZ) == 1)
+            if (Mathf.Abs (originalX) == 1 && Mathf.Abs (originalZ) == 1)
             {
-                Node firstNeighbour = GetNode (currentNodePos.x + originalX, currentNodePos.y, currentNodePos.z);
-                if (firstNeighbour == null || !firstNeighbour.isWalkable)
-                {
-                    returnValue = null;
-                }
+                Node xNeighbour = GetNode (baseNode.x + originalX, baseNode.y, baseNode.z);
+                if (xNeighbour == null || !xNeighbour.isWalkable)
+                    nodeToReturn = null;
 
-                Node secondNeighbour = GetNode (currentNodePos.x, currentNodePos.y, currentNodePos.z + originalZ);
-                if (secondNeighbour == null || !secondNeighbour.isWalkable)
-                {
-                    returnValue = null;
-                }
+                Node zNeighbour = GetNode (baseNode.x, baseNode.y, baseNode.z + originalZ);
+                if (zNeighbour == null || !zNeighbour.isWalkable)
+                    nodeToReturn = null;
             }
 
-            return returnValue;
+            return nodeToReturn;
         }
 
         private Node GetNode (int x, int y, int z)
         {
             Node node = null;
+
             lock (grid)
+            {
                 node = grid.GetNode (x, y, z);
+            }
+
             return node;
         }
 

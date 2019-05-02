@@ -12,11 +12,11 @@ namespace GridMaster
         public int y;
         public int z;
 
-        public float heightCost;
-        public float gridCost;
-        public float TotalCost { get { return heightCost + gridCost; } }
+        public float distanceCost;
+        public float neighbourCost;
+        public float TotalCost { get { return distanceCost + neighbourCost; } }
 
-        public GameObject worldObject;
+        public GameObject prefabObject;
         public Node parentNode;
         public bool isWalkable = true;
 

@@ -180,15 +180,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f8c59252ba03ad4eb6d8bf24a4271b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize: {x: 20, y: 0, z: 20}
-  offset: {x: 2, y: 2, z: 2}
-  gridFloorPrefab: {fileID: 168074, guid: 8cfd76552113bbd45bd387a0fffbc836, type: 3}
+  gridSizeX: 5
+  gridSizeY: 1
+  gridSizeZ: 5
+  offsetX: 2
+  offsetY: 2
+  offsetZ: 2
+  gridFloorPrefab: {fileID: 912866917208825826, guid: 399fe5f6d628f914497ca8dc44c80f33,
+    type: 3}
   startNodePosition: {x: 0, y: 0, z: 0}
   endNodePosition: {x: 3, y: 0, z: 3}
   pathColor: {r: 0, g: 1, b: 1, a: 1}
   startColor: {r: 0, g: 1, b: 0, a: 1}
   endColor: {r: 1, g: 0, b: 0, a: 1}
-  agentsAmount: 0
+  agentsAmount: 2
   visualizePath: 0
 --- !u!4 &742787092
 Transform:
@@ -216,7 +221,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b56e9d22633fac54d965b6c496e8a8e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxJobs: 3
+  maxThreads: 3
 --- !u!1 &1229937741
 GameObject:
   m_ObjectHideFlags: 0
